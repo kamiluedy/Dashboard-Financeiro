@@ -4,6 +4,9 @@ import { useAnalytics } from '../../hooks/useAnalytics';
 import { useAppsEnabled } from '../../hooks/useAppsEnabled';
 import { PeriodFilter } from '../PeriodFilter';
 import { VolumeAreaChart } from '../VolumeAreaChart';
+import { CategoryBarChart } from '../CategoryBarChart';
+import { CategoryPieChart } from '../CategoryPieChart';
+import { CategoryRankingChart } from '../CategoryRankingChart';
 import { exportDashboardPdf } from '../../lib/exportPdf';
 import type { Goal, Period, RegionSales } from '../../types';
 
@@ -19,7 +22,7 @@ const REGION_SALES: RegionSales[] = [
   { region: 'Filial - RS', value: 15200 },
 ];
 
-/** Painel principal: cards de resumo, fluxo de caixa e módulos condicionais (metas, filiais). */
+/** Painel principal: cards de resumo e os widgets de gráfico ativados na tela de Gráficos. */
 export function DashboardView() {
   const [period, setPeriod] = useState<Period>('today');
   const { enabled } = useAppsEnabled();
@@ -39,6 +42,9 @@ export function DashboardView() {
     if (!data) return;
     await exportDashboardPdf(chartRef.current, summary, data.categoryBreakdown);
   }
+
+  const hasWidgets =
+    enabled.volume || enabled.category || enabled.pie || enabled.ranking || enabled.goals || enabled['region-sales'];
 
   return (
     <div>
@@ -72,22 +78,52 @@ export function DashboardView() {
         <SummaryCard label="Saídas" value={summary.saidas} icon={ArrowDownRight} tone="negative" />
       </div>
 
-      <div ref={chartRef} className="mb-6 h-80 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
-        {data ? (
-          <VolumeAreaChart data={data.volumeSeries} />
-        ) : (
-          <div className="h-full animate-pulse rounded-xl bg-[var(--bg-surface-hover)]" />
+      <div ref={chartRef} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {enabled.volume && (
+          <ChartWidget title="Fluxo de Caixa">
+            {data ? <VolumeAreaChart data={data.volumeSeries} /> : <WidgetSkeleton />}
+          </ChartWidget>
         )}
+        {enabled.category && (
+          <ChartWidget title="Gastos por Categoria">
+            {data ? <CategoryBarChart data={data.categoryBreakdown} /> : <WidgetSkeleton />}
+          </ChartWidget>
+        )}
+        {enabled.pie && (
+          <ChartWidget title="Proporção de Gastos">
+            {data ? <CategoryPieChart data={data.categoryBreakdown} /> : <WidgetSkeleton />}
+          </ChartWidget>
+        )}
+        {enabled.ranking && (
+          <ChartWidget title="Ranking de Categorias">
+            {data ? <CategoryRankingChart data={data.categoryBreakdown} /> : <WidgetSkeleton />}
+          </ChartWidget>
+        )}
+        {enabled.goals && <GoalsPanel goals={GOALS} />}
+        {enabled['region-sales'] && <RegionSalesPanel data={REGION_SALES} />}
       </div>
 
-      {(enabled.goals || enabled['region-sales']) && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {enabled.goals && <GoalsPanel goals={GOALS} />}
-          {enabled['region-sales'] && <RegionSalesPanel data={REGION_SALES} />}
+      {!hasWidgets && (
+        <div className="rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)] p-8 text-center text-sm text-[var(--text-secondary)]">
+          Nenhum widget ativado. Acesse{' '}
+          <span className="text-brand-400">Gráficos</span> para escolher o que exibir aqui.
         </div>
       )}
     </div>
   );
+}
+
+function ChartWidget({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="h-80 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
+      <h2 className="mb-2 text-sm font-medium text-[var(--text-primary)]">{title}</h2>
+      <div className="h-[calc(100%-1.5rem)]">{children}</div>
+    </div>
+  );
+}
+
+function WidgetSkeleton() {
+  return <div className="h-full animate-pulse rounded-xl bg-[var(--bg-surface-hover)]" />;
 }
 
 function SummaryCard({
@@ -115,7 +151,7 @@ function SummaryCard({
   );
 }
 
-/** Painel de metas financeiras, exibido quando o módulo "goals" está ativado em Apps. */
+/** Painel de metas financeiras, exibido quando o widget "Metas Financeiras" está ativado. */
 function GoalsPanel({ goals }: { goals: Goal[] }) {
   return (
     <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
@@ -140,7 +176,7 @@ function GoalsPanel({ goals }: { goals: Goal[] }) {
   );
 }
 
-/** Painel de receita por filial/região, exibido quando o módulo "region-sales" está ativado em Apps. */
+/** Painel de receita por filial/região, exibido quando o widget "Receita por Filial" está ativado. */
 function RegionSalesPanel({ data }: { data: RegionSales[] }) {
   const max = Math.max(...data.map((d) => d.value));
   return (

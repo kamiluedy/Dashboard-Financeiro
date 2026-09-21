@@ -3,12 +3,10 @@ import { useCallback, useState } from 'react';
 const STORAGE_KEY = 'dashboard-apps-enabled';
 
 const DEFAULT_ENABLED: Record<string, boolean> = {
-  reports: true,
-  notifications: true,
-  calendar: false,
-  mail: false,
-  team: false,
-  billing: false,
+  volume: true,
+  category: false,
+  pie: false,
+  ranking: false,
   goals: false,
   'region-sales': false,
 };
@@ -23,7 +21,7 @@ function readStored(): Record<string, boolean> {
   }
 }
 
-/** Módulos ativáveis pelo usuário. "goals" e "region-sales" refletem painéis extras no Dashboard. */
+/** Widgets ativáveis pelo usuário na tela de Gráficos, refletidos como painéis no Dashboard. */
 export function useAppsEnabled() {
   const [enabled, setEnabled] = useState<Record<string, boolean>>(readStored);
 

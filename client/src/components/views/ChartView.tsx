@@ -1,59 +1,55 @@
-import { useState } from 'react';
-import { useAnalytics } from '../../hooks/useAnalytics';
-import type { Period } from '../../types';
-import { PeriodFilter } from '../PeriodFilter';
-import { VolumeAreaChart } from '../VolumeAreaChart';
-import { CategoryBarChart } from '../CategoryBarChart';
+import { AreaChart, BarChart3, Map, PieChart, Target } from 'lucide-react';
+import { useAppsEnabled } from '../../hooks/useAppsEnabled';
 
-type ChartKind = 'volume' | 'category';
+interface WidgetTile {
+  id: string;
+  label: string;
+  icon: typeof AreaChart;
+  description: string;
+}
 
-/** Página de exploração de gráficos: permite trocar período e alternar entre visualização de volume e categoria. */
+const WIDGETS: WidgetTile[] = [
+  { id: 'volume', label: 'Fluxo de Caixa', icon: AreaChart, description: 'Entradas x saídas ao longo do tempo' },
+  { id: 'category', label: 'Gastos', icon: BarChart3, description: 'Gastos agrupados por categoria' },
+  { id: 'pie', label: 'Proporção', icon: PieChart, description: 'Proporção de gastos entre categorias' },
+  { id: 'ranking', label: 'Ranking', icon: BarChart3, description: 'Categorias ordenadas por valor' },
+  { id: 'goals', label: 'Metas Financeiras', icon: Target, description: 'Progresso das metas financeiras' },
+  { id: 'region-sales', label: 'Receita por Filial', icon: Map, description: 'Receita comparada entre filiais' },
+];
+
+/** Central de widgets: ative os gráficos e painéis que deseja ver no Painel principal. */
 export function ChartView() {
-  const [period, setPeriod] = useState<Period>('today');
-  const [kind, setKind] = useState<ChartKind>('volume');
-  const now = new Date();
-  const { data, error } = useAnalytics({ period, year: now.getFullYear(), month: now.getMonth() });
+  const { enabled, toggle } = useAppsEnabled();
 
   return (
     <div>
       <h1 className="mb-1 text-2xl font-semibold text-[var(--text-primary)]">Gráficos</h1>
-      <p className="mb-6 text-sm text-[var(--text-secondary)]">Explore os dados em diferentes visualizações.</p>
+      <p className="mb-6 text-sm text-[var(--text-secondary)]">
+        Ative os widgets que deseja exibir no Painel.
+      </p>
 
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="flex rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1">
-          {(['volume', 'category'] as ChartKind[]).map((k) => (
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+        {WIDGETS.map(({ id, label, icon: Icon, description }) => {
+          const isOn = Boolean(enabled[id]);
+          return (
             <button
-              key={k}
-              onClick={() => setKind(k)}
-              className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-                kind === k
-                  ? 'bg-gradient-to-r from-brand-500 to-brand-600 text-white'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              key={id}
+              onClick={() => toggle(id)}
+              title={description}
+              className={`flex flex-col items-center gap-3 rounded-2xl border p-5 text-sm transition-colors ${
+                isOn
+                  ? 'border-brand-500/60 bg-[var(--bg-surface-hover)] text-[var(--text-primary)]'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
               }`}
             >
-              {k === 'volume' ? 'Fluxo de Caixa' : 'Gastos'}
+              <Icon size={22} className={isOn ? 'text-brand-400' : ''} />
+              {label}
+              <span className={`text-xs ${isOn ? 'text-positive' : 'text-[var(--text-secondary)]'}`}>
+                {isOn ? 'Ativado' : 'Desativado'}
+              </span>
             </button>
-          ))}
-        </div>
-        <PeriodFilter value={period} onChange={setPeriod} />
-      </div>
-
-      {error && (
-        <div className="mb-6 rounded-lg border border-negative/40 bg-negative/10 px-4 py-3 text-sm text-negative">
-          {error}
-        </div>
-      )}
-
-      <div className="h-96">
-        {data ? (
-          kind === 'volume' ? (
-            <VolumeAreaChart data={data.volumeSeries} />
-          ) : (
-            <CategoryBarChart data={data.categoryBreakdown} />
-          )
-        ) : (
-          <div className="h-full animate-pulse rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]" />
-        )}
+          );
+        })}
       </div>
     </div>
   );

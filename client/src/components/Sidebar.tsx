@@ -1,7 +1,7 @@
-import { BarChart3, Grid3x3, HelpCircle, LayoutDashboard, MessageSquare, Settings, Wallet } from 'lucide-react';
+import { BarChart3, HelpCircle, LayoutDashboard, MessageSquare, Settings, Wallet } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 
-export type Page = 'dashboard' | 'chart' | 'chat' | 'apps' | 'settings' | 'help';
+export type Page = 'dashboard' | 'chart' | 'chat' | 'settings' | 'help';
 
 interface SidebarProps {
   active: Page;
@@ -12,7 +12,6 @@ const NAV_ITEMS: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'dashboard', label: 'Painel', icon: LayoutDashboard },
   { id: 'chart', label: 'Gráficos', icon: BarChart3 },
   { id: 'chat', label: 'Conversas', icon: MessageSquare },
-  { id: 'apps', label: 'Apps', icon: Grid3x3 },
   { id: 'settings', label: 'Configurações', icon: Settings },
   { id: 'help', label: 'Ajuda', icon: HelpCircle },
 ];

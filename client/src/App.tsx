@@ -5,7 +5,6 @@ import { useTheme } from './hooks/useTheme';
 import { DashboardView } from './components/views/DashboardView';
 import { ChartView } from './components/views/ChartView';
 import { ChatView } from './components/views/ChatView';
-import { AppsView } from './components/views/AppsView';
 import { SettingsView } from './components/views/SettingsView';
 import { HelpView } from './components/views/HelpView';
 
@@ -13,7 +12,6 @@ const PAGE_TITLES: Record<Page, string> = {
   dashboard: 'Painel',
   chart: 'Gráficos',
   chat: 'Conversas',
-  apps: 'Apps',
   settings: 'Configurações',
   help: 'Ajuda',
 };
@@ -32,7 +30,6 @@ export function App() {
           {page === 'dashboard' && <DashboardView />}
           {page === 'chart' && <ChartView />}
           {page === 'chat' && <ChatView />}
-          {page === 'apps' && <AppsView />}
           {page === 'settings' && <SettingsView theme={theme} onToggleTheme={toggleTheme} />}
           {page === 'help' && <HelpView />}
         </main>
